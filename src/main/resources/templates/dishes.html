@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastFood</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/fontawesome.min.css}">
+    <link rel="stylesheet" th:href="@{/alertifyjs/css/alertify.min.css}">
+    <link rel="stylesheet" th:href="@{/alertifyjs/css/themes/default.css}">
+</head>
+<body class="bg-light">
+    <div class="container my-4">
+        <h1 class="text-center">Fast Food</h1>
+        <h3 class="text-center">CRUD con implementación de logger</h3>
+        <div class="mt-3 card shadow">
+            <div class="card-body vstack gap-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="m-0">Platillos</h2>
+                    <button onclick="dishCreation.show()" class="btn btn-success"><i class="fas fa-plus"></i>&nbsp;Registrar platillo</button>
+                </div>
+                <hr class="m-0">
+                <div class="table-responsive">
+                    <table class="table table-striped m-0">
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th class="text-center">Precio</th>
+                            <th class="text-center">Fecha de registro</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                        <tr th:each="dish, i : ${dishes}">
+                            <td class="text-center align-middle">[[${i.count}]]</td>
+                            <td class="align-middle">[[${dish.name}]]</td>
+                            <td class="align-middle">[[${dish.description}]]</td>
+                            <td class="text-center align-middle">$[[${dish.price}]]</td>
+                            <td class="text-center align-middle date-container">[[${dish.registrationDate}]]</td>
+                            <td class="text-center align-middle">
+                                <span class="badge" th:classappend="${dish.status ? 'text-bg-success' : 'text-bg-secondary'}">
+                                    [[${dish.status ? 'Activo' : 'Inactivo'}]]
+                                </span>
+                            </td>
+                            <td class="text-center align-middle">
+                                <div th:if="${dish.status}" class="row g-1 justify-content-center">
+                                    <div class="col-auto">
+                                        <button th:onclick="dishUpdate.show([[${dish.id}]])" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button th:onclick="dishDeletion.show([[${dish.id}]])" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <script>
+                            for (dateContainer of document.querySelectorAll(".date-container")) dateContainer.innerText = new Date(dateContainer.innerText).toLocaleString(undefined, {dateStyle: 'long'})
+                        </script>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FORMULARIO DE REGISTRO -->
+    <div class="modal fade" id="dishCreation_modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar platillo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" id="dishCreation_form" th:action="@{/Platillos/register}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="dishCreation_inpName" class="form-label">Nombre: <span class="fw-bold text-danger">*</span></label>
+                                <input id="dishCreation_inpName" name="name" class="form-control" type="text" required maxlength="45">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="dishCreation_inpPrice" class="form-label">Precio: <span class="fw-bold text-danger">*</span></label>
+                                <input id="dishCreation_inpPrice" name="price" class="form-control" type="number" step="any" required min="0">
+                            </div>
+                            <div class="col-12">
+                                <label for="dishCreation_inpDescription" class="form-label">Descripción:</label>
+                                <input id="dishCreation_inpDescription" name="description" class="form-control" type="text" maxlength="100">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button onclick="dishCreation.confirm()" type="button" class="btn btn-primary" id="dishCreation_btnCreate">Registrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- FORMULARIO DE ACTUALIZACIÓN -->
+    <div class="modal fade" id="dishUpdate_modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Actualizar platillo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" id="dishUpdate_form" th:action="@{/Platillos/update}">
+                        <input id="dishUpdate_inpId" type="hidden" name="id">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="dishUpdate_inpName" class="form-label">Nombre: <span class="fw-bold text-danger">*</span></label>
+                                <input id="dishUpdate_inpName" name="name" class="form-control" type="text" required maxlength="45">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="dishUpdate_inpPrice" class="form-label">Precio: <span class="fw-bold text-danger">*</span></label>
+                                <input id="dishUpdate_inpPrice" name="price" class="form-control" type="number" step="any" required min="0">
+                            </div>
+                            <div class="col-12">
+                                <label for="dishUpdate_inpDescription" class="form-label">Descripción:</label>
+                                <input id="dishUpdate_inpDescription" name="description" class="form-control" type="text" maxlength="100">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button onclick="dishUpdate.confirm()" type="button" class="btn btn-primary" id="dishUpdate_btnUpdate">Registrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO DE ELIMINACIÓN (Oculto) -->
+    <form method="POST" hidden id="dishDeletion_form" th:action="@{/Platillos/delete}">
+        <input type="number" id="dishDeletion_inpId" name="id">
+    </form>
+
+    <!-- INPUT OCULTO DE CONFIRMACIÓN -->
+    <button class="d-none" type="submit" id="confirmation_btnSubmmit"></button>
+    
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/main.js}"></script>
+    <script th:src="@{/alertifyjs/alertify.min.js}"></script>
+    <script>
+        alertify.set('notifier','position', 'top-right');
+        const context = ''
+        if ([[${message != null}]]) notification.show('[[${message}]]', [[${success}]])
+    </script>
+</body>
+</html>
